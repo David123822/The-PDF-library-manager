@@ -1,0 +1,111 @@
+Add:
+
+the file path -> Categoria [programing language] -> tags [wb dev, algorithms, games, cripto] -> favorite (0 - 1) -> status (Not started, Reading, Completed)
+
+will have to work with updates in the database
+the Status and Favorites will be in the View and the Search functions and maybe a dedicated status page
+
+
+The Status page:
+
+will display the name of the file ONLY if it was started 
+
+and on a separate list the favorite books
+
+
+
+Search and View:
+
+both will be using a Treeview widget
+
+File -> Category -> Level -> Tags
+
+{
+
+# Treeview Widget
+tree = ttk.Treeview(root)
+tree["columns"] = ("Name", "Age")
+tree.column("#0", width=0, stretch=tk.NO)  # Hide the first column
+tree.column("Name", width=100)
+tree.column("Age", width=50)
+tree.heading("Name", text="Name")
+tree.heading("Age", text="Age")
+tree.insert("", tk.END, text="1", values=("John", "30"))
+tree.insert("", tk.END, text="2", values=("Alice", "25"))
+tree.grid(row=7, column=2, padx=5, pady=5)
+
+}
+
+also here there will a button for adding to Favorites
+
+and when doubleclicking on a file the status of that file will be set to "reading" automatically
+
+Status:
+
+(look into designing the Status page)
+
+example for the favorites and the status of the book:
+
+
+def open_with_okular(file_path):
+    subprocess.Popen(["okular", file_path])
+
+# Function to mark a PDF file as favorite
+def mark_as_favorite():
+    selected_path = file_listbox.get(tk.ACTIVE)
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    cursor.execute('''UPDATE pdf_files SET is_favorite = 1 WHERE file_path = ?''', (selected_path,))
+    conn.commit()
+
+    conn.close()
+    print("PDF file marked as favorite.")
+
+# Function to mark a PDF file as read
+def mark_as_read(status):
+    selected_path = file_listbox.get(tk.ACTIVE)
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    cursor.execute('''UPDATE pdf_files SET status = ? WHERE file_path = ?''', (status, selected_path,))
+    conn.commit()
+
+    conn.close()
+    print(f"PDF file marked as {status}.")
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("PDF Uploader")  # Setting the title of the window
+
+# Create a button to upload PDF file
+upload_button = tk.Button(root, text="Upload PDF", command=upload_pdf)
+upload_button.pack(pady=5)  # Placing the upload button in the window with some padding
+
+# Create buttons for additional functionality
+favorite_button = tk.Button(root, text="Mark as Favorite", command=mark_as_favorite)
+favorite_button.pack(pady=5)  # Placing the favorite button in the window with some padding
+
+start_reading_button = tk.Button(root, text="Start Reading", command=lambda: mark_as_read("Started"))
+start_reading_button.pack(pady=5)  # Placing the start reading button in the window with some padding
+
+complete_reading_button = tk.Button(root, text="Complete Reading", command=lambda: mark_as_read("Completed"))
+complete_reading_button.pack(pady=5)  # Placing the complete reading button in the window with some padding
+
+display_button = tk.Button(root, text="Display Data", command=display_data)
+display_button.pack(pady=5)  # Placing the display button in the window with some padding
+
+# Function to handle double-click event
+def on_double_click(event):
+    selected_path = file_listbox.get(tk.ACTIVE)
+    open_with_okular(selected_path)
+
+# Create a listbox to display PDF file paths
+file_listbox = tk.Listbox(root)
+file_listbox.pack(expand=True, fill=tk.BOTH)  # Placing the listbox in the window and configuring to fill both horizontally and vertically
+
+# Bind double-click event to open_with_okular function
+file_listbox.bind("<Double-Button-1>", on_double_click)  # Binding double-click event to the listbox
+
+# Run the Tkinter event loop
+root.mainloop()
